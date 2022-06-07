@@ -25,7 +25,17 @@ class Field:
 
 class Phone(Field):
     def __init__(self, phone_list):
+        self.__phone_list = None
         self.value = phone_list
+
+    @property
+    def phone_list(self):
+        return self.__phone_list
+
+    @phone_list.setter
+    def phone_list(self, phone_list):
+        if phone_list.isdigit():
+            self.__phone_list = phone_list
 
 
 class Name(Field):
@@ -97,8 +107,20 @@ class Record:
 
 
 class AddressBook(UserDict):
-    def __init__(self):
+    def __init__(self, counter=None):
         self.data = {}
+        self.count = 0
+        self.counter = counter
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.count < self.counter:
+            raise StopIteration
+        else:
+            self.count += 1
+            return self.data
 
     def add_to_addressbook(self, name: Name, record: Record):
         self.data[name.value] = record
@@ -106,6 +128,14 @@ class AddressBook(UserDict):
 
 def ex(*args):
     return "Good bye!"
+
+
+class CustomIterator:
+    def __init__(self, counter=1):
+        self.counter = counter
+
+    def __iter__(self):
+        return AddressBook(self)
 
 
 # превращаю список телефонов в кортеж обьектов Phone
@@ -129,10 +159,19 @@ def add_to_addressbook(addressbook: AddressBook, *args):
     return f'Contact {tmp_rec.name.value} with phones {tmp_phone1} added successfully'
 
 
-@input_error
 def show_addressbook(addressbook: AddressBook, *args):
-    for k, v in addressbook.data.items():
-        print(k, v.phone)
+    if args[0] == '':
+        for k, v in addressbook.data.items():
+            print(k, v.phone)
+    if args[0].isdigit():
+        show_book = CustomIterator()
+        for contacts in show_book:
+            print(contacts)
+        # show_book = addressbook
+        # for contacts in show_book:
+        #     print(contacts)
+        return "Please input numbers of showing contacts"
+
     # showing_phone_book = {}
     # for k, v in addressbook.data.items():
     #     if isinstance(Birthday, v):
