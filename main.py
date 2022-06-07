@@ -1,169 +1,245 @@
-"""
-Необходимо реализовать класс RandomVectors, который сможет создавать итерируемый объект и позволять итерироваться
-по случайным векторам.
-
-Формат класса:
-RandomVectors(max_vectors: int, max_points: int) -> Iterable(max_vectors,  max_points)
-
-где:
-
-max_vectors — определяет максимальное количество элементов (экземпляров класса Vector) в итерируемой последовательности
-max_points — определяет максимальное значение для координат x и y (в диапазоне 0...max_points)
-Чтобы экземпляры класса RandomVectors были итерируемыми объектами, в классе должен быть реализован метод __iter__,
-который возвращает итератор. Итератор — это любой объект, который на каждом шаге итерации (шаг итерации —
-это вызов метода next() для этого итератора) возвращает следующее значение — и так до исчерпания количества итераций
-(определяется параметром max_vectors).
-
-В нашем случае итератором будет класс Iterable, в котором необходимо реализовать метод __next__.
-Он в конструкторе получает те же параметры max_vectors и max_points, что и класс RandomVectors.
-
-Метод __next__ должен выдавать каждое последующее значение из списка self.vectors.
-Создайте в конструкторе набор случайных векторов self.vectors длиной max_vectors с помощью randrange.
-Атрибут current_index — указатель-индекс на текущий вектор из списка vectors, необходим для итерирования.
-
-Пример работы класса `RandomVectors:
-vectors = RandomVectors(5, 10)
-
-for vector in vectors:
-    print(vector)
-
-Vector(7,7)
-Vector(0,0)
-Vector(8,9)
-Vector(1,9)
-Vector(6,6)
-
-Детализируем нашу задачу:
-
-Класс RandomVectors должен иметь метод __iter__, который должен вернуть объект итератора (класс Iterable)
-Объект итератора (экземпляр класса Iterable) должен иметь метод __next__
-Метод __next__ следит за количеством возможных шагов итерации, они определяются параметром max_vectors
-Если мы исчерпали возможные шаги, то метод __next__ генерирует исключение StopIteration
-В противном случае метод __next__ возвращает вектор со случайными координатами (экземпляр класса Vector),
-размер координат вектора определяется параметром max_points.
-"""
-import random
-from random import randrange
+from collections import UserDict
+from datetime import datetime
 
 
-class Point:
-    def __init__(self, x, y):
-        self.__x = None
-        self.__y = None
-        self.x = x
-        self.y = y
+def input_error(in_func):
+    def wrapper(*args):
+        try:
+            check = in_func(*args)
+            return check
+        except KeyError:
+            return 'There is no such a contact. Please try again'
+        except IndexError:
+            return 'Give me name and phone please'
+        except ValueError:
+            return 'ValueError'
+        except TypeError:
+            return 'TypeError'
+
+    return wrapper
+
+
+class Field:
+    pass
+
+
+class Phone(Field):
+    def __init__(self, phone_list):
+        self.value = phone_list
+
+
+class Name(Field):
+    def __init__(self, value):
+        self.value = value
+
+
+class Birthday(Field):
+    def __init__(self, b_date):
+        self.__b_date = None
+        self.b_date = b_date
 
     @property
-    def x(self):
-        return self.__x
+    def b_date(self):
+        return self.__b_date
 
-    @x.setter
-    def x(self, x):
-        if (type(x) == int) or (type(x) == float):
-            self.__x = x
-
-    @property
-    def y(self):
-        return self.__y
-
-    @y.setter
-    def y(self, y):
-        if (type(y) == int) or (type(y) == float):
-            self.__y = y
-
-    def __str__(self):
-        return f"Point({self.x},{self.y})"
+    @b_date.setter
+    def b_date(self, b_date):
+        if len(b_date) == 10:
+            self.__b_date = b_date
 
 
-class Vector:
-    def __init__(self, coordinates: Point):
-        self.coordinates = coordinates
-
-    def __setitem__(self, index, value):
-        if index == 0:
-            self.coordinates.x = value
-        if index == 1:
-            self.coordinates.y = value
-
-    def __getitem__(self, index):
-        if index == 0:
-            return self.coordinates.x
-        if index == 1:
-            return self.coordinates.y
-
-    def __call__(self, value=None):
-        if value:
-            self.coordinates.x = self.coordinates.x * value
-            self.coordinates.y = self.coordinates.y * value
-        return self.coordinates.x, self.coordinates.y
-
-    def __add__(self, vector):  # (x2 + x1, y2 + y1)
-        x = vector.coordinates.x + self.coordinates.x
-        y = vector.coordinates.y + self.coordinates.y
-        return Vector(Point(x, y))
-
-    def __sub__(self, vector):  # (x2 - x1, y2 - y1)
-        x = self.coordinates.x - vector.coordinates.x
-        y = self.coordinates.y - vector.coordinates.y
-        return Vector(Point(x, y))
-
-    def __mul__(self, vector):
-        return vector.coordinates.x * self.coordinates.x + vector.coordinates.y * self.coordinates.y
-
-    def len(self):
-        return (self.coordinates.x ** 2 + self.coordinates.y ** 2) ** 0.5
-
-    def __str__(self):
-        return f"Vector({self.coordinates.x},{self.coordinates.y})"
-
-    def __eq__(self, vector):
-        return self.len() == vector.len()
-
-    def __ne__(self, vector):
-        return self.len() != vector.len()
-
-    def __lt__(self, vector):
-        return self.len() < vector.len()
-
-    def __gt__(self, vector):
-        return self.len() > vector.len()
-
-    def __le__(self, vector):
-        return self.len() <= vector.len()
-
-    def __ge__(self, vector):
-        return self.len() >= vector.len()
+# Record реализует методы для добавления/удаления/редактирования объектов Phone.
 
 
-class Iterable:
-    def __init__(self, max_vectors, max_points):
-        self.current_index = 0
-        self.vectors = []
-        self.max_vectors = max_vectors
-        self.max_points = max_points
+class Record:
+    def __init__(self, name: Name, *args, b_date=None):
+        self.name = name
+        self.phone = []
+        if args:
+            for i in range(len(args)):
+                self.phone.append(args[i])
+        self.b_date = b_date
 
-    def __next__(self):
-        self.current_index += 1
-        if self.current_index > self.max_vectors:
-            raise StopIteration
-        return Vector(Point(randrange(self.current_index, self.max_points, self.max_vectors)
-                            , randrange(self.current_index, self.max_points, self.max_vectors)))
+    def add_number_to_record(self, phone: Phone):
+        self.phone.append(phone)
+
+    def del_number_from_record(self, phone: Phone):
+        for i in self.phone:
+            if i.value == phone.value:
+                self.phone.remove(i)
+
+    def change_number_in_record(self, phone: Phone, phone_new: Phone):
+        for i in self.phone:
+            if i.value == phone.value:
+                self.phone[self.phone.index(i)] = phone_new
+
+    def days_to_birthday(self, b_day: Birthday = None):
+        current_datetime = datetime.now()
+        birthday_data = b_day.b_date
+        birthday_data_strip = birthday_data.split("-")
+        if int(birthday_data_strip[1]) < current_datetime.month:
+            birthday_data_string = datetime(year=current_datetime.year + 1, month=int(
+                birthday_data_strip[1]), day=int(birthday_data_strip[2]) + 1)
+            return (birthday_data_string - current_datetime).days
+        elif int(birthday_data_strip[1]) == current_datetime.month:
+            birthday_data_string = datetime(year=current_datetime.year, month=int(
+                birthday_data_strip[1]), day=int(birthday_data_strip[2]) + 1)
+            if birthday_data_string < current_datetime:
+                birthday_data_string = datetime(year=current_datetime.year + 1, month=int(
+                    birthday_data_strip[1]), day=int(birthday_data_strip[2]) + 1)
+                return (birthday_data_string - current_datetime).days
+            else:
+                return (birthday_data_string - current_datetime).days
+        else:
+            birthday_data_string = datetime(year=current_datetime.year, month=int(
+                birthday_data_strip[1]), day=int(birthday_data_strip[2]))
+            return (birthday_data_string - current_datetime).days
 
 
-class RandomVectors:
-    def __init__(self, max_vectors=10, max_points=50):
-        self.max_vectors = max_vectors
-        self.max_points = max_points
+class AddressBook(UserDict):
+    def __init__(self):
+        self.data = {}
 
-    def __iter__(self):
-        return Iterable(self.max_vectors, self.max_points)
+    def add_to_addressbook(self, name: Name, record: Record):
+        self.data[name.value] = record
+
+
+def ex(*args):
+    return "Good bye!"
+
+
+# превращаю список телефонов в кортеж обьектов Phone
+@input_error
+def parse_phones(raw__p: list):
+    tmp_p_list = []
+    for i in raw__p:
+        tmp_p = Phone(i)
+        tmp_p_list.append(tmp_p)
+    return tuple(tmp_p_list)
+
+
+@input_error
+def add_to_addressbook(addressbook: AddressBook, *args):
+    if args[0].isdigit():
+        return "The contact name should be in letters"
+    tmp_name = Name(args[0])
+    tmp_phone1 = parse_phones(args[1:])
+    tmp_rec = Record(tmp_name, tmp_phone1)
+    addressbook.add_to_addressbook(tmp_name, tmp_rec)
+    return f'Contact {tmp_rec.name.value} with phones {tmp_phone1} added successfully'
+
+
+@input_error
+def show_addressbook(addressbook: AddressBook, *args):
+    for k, v in addressbook.data.items():
+        print(k, v.phone)
+    # showing_phone_book = {}
+    # for k, v in addressbook.data.items():
+    #     if isinstance(Birthday, v):
+    #
+    #     if type(v.phone[0]) == tuple:
+    #         v.phone = list(v.phone[0])
+    #     phones = ', '.join([str(i.value) for i in v.phone])
+    #     showing_phone_book[k] = phones
+    # return showing_phone_book
+
+
+@input_error
+def find_contact(addressbook: AddressBook, *args):
+    for k, v in addressbook.data.items():
+        if k == args[0]:
+            return k, v.phone
+
+
+@input_error
+def add_phone_to_contact(addressbook: AddressBook, *args):
+    for k, v in addressbook.data.items():
+        if k == args[0]:
+            add_num = Phone(args[1])
+            Record.add_number_to_record(v, add_num)
+            return f'Number {add_num.value} was added'
+
+
+@input_error
+def erase_phone(addressbook: AddressBook, *args):
+    for k, v in addressbook.data.items():
+        if k == args[0]:
+            del_num = Phone(args[1])
+            Record.del_number_from_record(v, del_num)
+            return f'Number {del_num.value} was deleted'
+
+
+def change_phone(addressbook: AddressBook, *args):
+    for k, v in addressbook.data.items():
+        if k == args[0]:
+            ch_num_in = Phone(args[1])
+            ch_num_for = Phone(args[2])
+            Record.change_number_in_record(v, ch_num_in, ch_num_for)
+            return f'Number {ch_num_in.value} was changed to {ch_num_for.value}'
+
+
+def check_contact_b_day(addressbook: AddressBook, *args, b_day: Birthday = None):
+    for k, v in addressbook.data.items():
+        if k == args[0]:
+            if isinstance(v.phone[-1], Birthday):
+                b_day = v.phone[-1]
+                return Record.days_to_birthday(v, b_day)
+            else:
+                return f'Contact {args[0]} doesnt have a birthday field'
+
+
+COMMANDS = {ex: ["exit", ".", "bye"], show_addressbook: ["show", "s"], add_to_addressbook: ["add"],
+            find_contact: ["find", "f"], add_phone_to_contact: ["ap"], erase_phone: ["erase"],
+            change_phone: ["change", "ch"], check_contact_b_day: ["birthday", "bdate", "bd"]}
+
+
+def parse_command(user_input: str):
+    for k, v in COMMANDS.items():
+        for i in v:
+            if user_input.lower().startswith(i.lower()):
+                return k, user_input[len(i):].strip().split(" ")
 
 
 def main():
-    vectors = RandomVectors(5, 10)
+    print('Welcome to the worst PhoneBook EVER')
+    print('You can use following commands:')
+    print('"show", "s" - to show the whole PhoneBook')
+    print('"add" - to add the contact to the Phone book \\ example: add ContactName Phone \\+ Phone....')
+    print('"ap" - add phone for existing contact \\ example: ap NameOfExistingContact Phone \\+ Phone....')
+    print('"change", "ch" - to update existing phone number for contact \\ example: change '
+          'NameOfExistingContact Phone \\+ Phone....')
+    print('"erase" - to erase existing phone for the contact \\ example: erase NameOfExistingContact '
+          'Phone \\+ Phone....')
+    print('"birthday", "bdate", "bd" - to check how many days till next birthday for the contact '
+          '\\ example: ch NameOfExistingContact')
+    print('"exit", ".", "bye" - for exit')
+    print("==================================================")
+    phone_book = AddressBook()
+    name1 = Name('Alberto')
+    name2 = Name('Dell')
+    name3 = Name('Rio')
 
-    for vector in vectors:
-        print(vector)
+    phone1 = Phone('+3232323')
+    phone2 = Phone('+6666664')
+    phone3 = Phone('+23432423')
+
+    bdate1 = Birthday('1990-05-18')
+    bdate2 = Birthday('1980-06-09')
+
+    r = Record(name1, phone1, phone3, bdate1)
+    r2 = Record(name2, phone2)
+    r3 = Record(name3, phone3, phone2, bdate2)
+
+    phone_book.add_to_addressbook(name1, r)
+    phone_book.add_to_addressbook(name2, r2)
+    phone_book.add_to_addressbook(name3, r3)
+
+    while True:
+        tmp = input('Please input command: ')
+        result, data = parse_command(tmp)
+        print(result(phone_book, *data))
+        if result is ex:
+            break
 
 
 if '__main__' == __name__:
