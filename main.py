@@ -1,5 +1,5 @@
 from collections import UserDict
-from datetime import datetime
+from datetime import date, datetime
 
 
 def input_error(in_func):
@@ -26,7 +26,7 @@ class Field:
 class Phone(Field):
     def __init__(self, phone_list):
         self.__phone_list = None
-        self.value = phone_list
+        self.phone_list = phone_list
 
     @property
     def phone_list(self):
@@ -36,6 +36,9 @@ class Phone(Field):
     def phone_list(self, phone_list):
         if phone_list.isdigit():
             self.__phone_list = phone_list
+    
+    def __repr__(self) -> str:
+        return str(self.__phone_list)
 
 
 class Name(Field):
@@ -53,77 +56,98 @@ class Birthday(Field):
         return self.__b_date
 
     @b_date.setter
-    def b_date(self, b_date):
-        if len(b_date) == 10:
-            self.__b_date = b_date
+    def b_date(self, b_date): # сдесь нужно реализовать парсер и помещать в в виде datetime объекта
+        try:
+            self.__b_date = datetime.strptime(b_date, '%Y-%m-%d').date()
+        except ValueError as e:
+            return "Birtdate must be in 'dd.mm.yy' format"
+        # if len(b_date) == 10:
+        #     self.__b_date = b_date
+    
+    def __repr__(self) -> str:
+        return self.b_date.strftime('%Y-%m-%d')
 
 
 # Record реализует методы для добавления/удаления/редактирования объектов Phone.
 
 
 class Record:
-    def __init__(self, name: Name, *args, b_date=None):
+    def __init__(self, name:Name, phone:Phone=None, b_date:Birthday=None): # плохой стиль написания( или все в args, или именованные
         self.name = name
-        self.phone = []
-        if args:
-            for i in range(len(args)):
-                self.phone.append(args[i])
+        self.phones = [] #коллекции называем во множественном числе
+        if phone:
+            self.phones.append(phone)
         self.b_date = b_date
 
-    def add_number_to_record(self, phone: Phone):
-        self.phone.append(phone)
+    def add_number_to_record(self, phone: Phone): # это излишнее наименование)
+        self.phones.append(phone)
 
     def del_number_from_record(self, phone: Phone):
-        for i in self.phone:
+        for i in self.phones:
             if i.value == phone.value:
-                self.phone.remove(i)
+                self.phones.remove(i)
 
     def change_number_in_record(self, phone: Phone, phone_new: Phone):
-        for i in self.phone:
+        for i in self.phones:
             if i.value == phone.value:
-                self.phone[self.phone.index(i)] = phone_new
+                self.phones[self.phones.index(i)] = phone_new
 
-    def days_to_birthday(self, b_day: Birthday = None):
-        current_datetime = datetime.now()
-        birthday_data = b_day.b_date
-        birthday_data_strip = birthday_data.split("-")
-        if int(birthday_data_strip[1]) < current_datetime.month:
-            birthday_data_string = datetime(year=current_datetime.year + 1, month=int(
-                birthday_data_strip[1]), day=int(birthday_data_strip[2]) + 1)
-            return (birthday_data_string - current_datetime).days
-        elif int(birthday_data_strip[1]) == current_datetime.month:
-            birthday_data_string = datetime(year=current_datetime.year, month=int(
-                birthday_data_strip[1]), day=int(birthday_data_strip[2]) + 1)
-            if birthday_data_string < current_datetime:
-                birthday_data_string = datetime(year=current_datetime.year + 1, month=int(
-                    birthday_data_strip[1]), day=int(birthday_data_strip[2]) + 1)
-                return (birthday_data_string - current_datetime).days
-            else:
-                return (birthday_data_string - current_datetime).days
-        else:
-            birthday_data_string = datetime(year=current_datetime.year, month=int(
-                birthday_data_strip[1]), day=int(birthday_data_strip[2]))
-            return (birthday_data_string - current_datetime).days
+    def days_to_birthday(self): # , b_day: Birthday = None дата дня рождения уже есть в объектк
+        # Да - полет фантазии - огонь)
+        
+        if self.b_date:
+            b_d = self.b_date.b_date
+            result = datetime(datetime.now().year, b_d.month, b_d.day) - datetime.now()
+            if result.days > 0:
+                return result.days
+            return "The birthday is over"
+        return "Birthdate not set"
+        
+        
+        # current_datetime = datetime.now()
+        # birthday_data = b_day.b_date
+        # birthday_data_strip = birthday_data.split("-")
+        # if int(birthday_data_strip[1]) < current_datetime.month:
+        #     birthday_data_string = datetime(year=current_datetime.year + 1, month=int(
+        #         birthday_data_strip[1]), day=int(birthday_data_strip[2]) + 1)
+        #     return (birthday_data_string - current_datetime).days
+        # elif int(birthday_data_strip[1]) == current_datetime.month:
+        #     birthday_data_string = datetime(year=current_datetime.year, month=int(
+        #         birthday_data_strip[1]), day=int(birthday_data_strip[2]) + 1)
+        #     if birthday_data_string < current_datetime:
+        #         birthday_data_string = datetime(year=current_datetime.year + 1, month=int(
+        #             birthday_data_strip[1]), day=int(birthday_data_strip[2]) + 1)
+        #         return (birthday_data_string - current_datetime).days
+        #     else:
+        #         return (birthday_data_string - current_datetime).days
+        # else:
+        #     birthday_data_string = datetime(year=current_datetime.year, month=int(
+        #         birthday_data_strip[1]), day=int(birthday_data_strip[2]))
+        #     return (birthday_data_string - current_datetime).days
 
 
 class AddressBook(UserDict):
-    def __init__(self, counter=None):
-        self.data = {}
-        self.count = 0
-        self.counter = counter
+    counter = 2
+    # def __init__(self, counter=None):
+    #     self.data = {}
+    #     self.count = 0
+    #     self.counter = counter
+    def set_pages(self, page):
+        self.counter = page
 
     def __iter__(self):
+        self.count = 0
         return self
 
     def __next__(self):
-        if self.count < self.counter:
+        if self.count > self.counter:
             raise StopIteration
         else:
             self.count += 1
             return self.data
 
-    def add_to_addressbook(self, name: Name, record: Record):
-        self.data[name.value] = record
+    def add_to_addressbook(self,record: Record):
+        self.data[record.name.value] = record
 
 
 def ex(*args):
@@ -162,10 +186,11 @@ def add_to_addressbook(addressbook: AddressBook, *args):
 def show_addressbook(addressbook: AddressBook, *args):
     if args[0] == '':
         for k, v in addressbook.data.items():
-            print(k, v.phone)
+            print(k, v.phones, v.b_date if v.b_date else '')
     if args[0].isdigit():
-        show_book = CustomIterator()
-        for contacts in show_book:
+        # show_book = CustomIterator()
+        
+        for contacts in addressbook:
             print(contacts)
         # show_book = addressbook
         # for contacts in show_book:
@@ -217,14 +242,16 @@ def change_phone(addressbook: AddressBook, *args):
             return f'Number {ch_num_in.value} was changed to {ch_num_for.value}'
 
 
-def check_contact_b_day(addressbook: AddressBook, *args, b_day: Birthday = None):
-    for k, v in addressbook.data.items():
-        if k == args[0]:
-            if isinstance(v.phone[-1], Birthday):
-                b_day = v.phone[-1]
-                return Record.days_to_birthday(v, b_day)
-            else:
-                return f'Contact {args[0]} doesnt have a birthday field'
+def check_contact_b_day(addressbook: AddressBook, *args): # Нужно просто принять ключ, имя контакта и вернуть дни до его ДР
+    rec = addressbook.data.get(args[0])
+    if rec:
+        return rec.days_to_birthday()
+    return f'Addresbook dont have contact with name {args[0]}'
+            # if isinstance(v.phone[-1], Birthday):
+            #     b_day = v.phone[-1
+            #     return Record.days_to_birthday(v, b_day)
+            # else:
+            #     return f'Contact {args[0]} doesnt have a birthday field'
 
 
 COMMANDS = {ex: ["exit", ".", "bye"], show_addressbook: ["show", "s"], add_to_addressbook: ["add"],
@@ -258,20 +285,22 @@ def main():
     name2 = Name('Dell')
     name3 = Name('Rio')
 
-    phone1 = Phone('+3232323')
-    phone2 = Phone('+6666664')
-    phone3 = Phone('+23432423')
+    phone1 = Phone('3232323')
+    phone2 = Phone('6666664')
+    phone3 = Phone('23432423')
 
     bdate1 = Birthday('1990-05-18')
-    bdate2 = Birthday('1980-06-09')
+    bdate2 = Birthday('1980-07-09')
 
-    r = Record(name1, phone1, phone3, bdate1)
+    r = Record(name1, phone1, bdate1) # если хотите реализовать множественную передачу одинаковых данных, возьмите их в кортеж) но сейчас лучше по одному
+    r.add_number_to_record(phone3)
     r2 = Record(name2, phone2)
-    r3 = Record(name3, phone3, phone2, bdate2)
+    r3 = Record(name3, phone3, bdate2)
+    r3.add_number_to_record(phone2)
 
-    phone_book.add_to_addressbook(name1, r)
-    phone_book.add_to_addressbook(name2, r2)
-    phone_book.add_to_addressbook(name3, r3)
+    phone_book.add_to_addressbook(r) # в объектах Record уже есть имя, потому это лишняя передача.
+    phone_book.add_to_addressbook(r2)
+    phone_book.add_to_addressbook(r3)
 
     while True:
         tmp = input('Please input command: ')
