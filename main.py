@@ -109,24 +109,9 @@ class Record:
 
 class AddressBook(UserDict):
     counter = 0
-    # def __init__(self, counter=1):
-    #     # self.data = {}
-    #     self.count = 0
-    #     self.counter = counter
 
     def set_pages(self, page):
         self.counter = page
-
-    # def __iter__(self):
-    #     self.count = 0
-    #     return self
-    #
-    # def __next__(self):
-    #     if self.count > self.counter:
-    #         raise StopIteration
-    #     else:
-    #         self.count += 1
-    #         return self.data
 
     def add_to_addressbook(self, record: Record):
         self.data[record.name.value] = record
@@ -139,7 +124,7 @@ class AddressBook(UserDict):
             yield self[b[self.counter]]
             self.counter += 1
             if self.counter == number_of_iterations:
-                input("press any Enter to continue...")
+                input("press Enter to continue...")
                 number_of_iterations += int(args[1])
                 if number_of_iterations > len(b):
                     number_of_iterations = len(b)
@@ -238,9 +223,10 @@ def helps(*args):
 
 COMMANDS = {ex: ["exit", ".", "bye"], show_addressbook: ["show", "s"], add_to_addressbook: ["add"],
             find_contact: ["find", "f"], add_phone_to_contact: ["ap"], erase_phone: ["erase"],
-            change_phone: ["change", "ch"], check_contact_b_day: ["birthday", "bdate", "bd"], helps: ["help", "h"],}
+            change_phone: ["change", "ch"], check_contact_b_day: ["birthday", "bdate", "bd"], helps: ["help", "h"]}
 
 
+@input_error
 def parse_command(user_input: str):
     for k, v in COMMANDS.items():
         for i in v:
