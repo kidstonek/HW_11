@@ -218,7 +218,6 @@ def helps(*args):
           'Phone \\+ Phone....')
     print('"birthday", "bdate", "bd" - to check how many days till next birthday for the contact '
           '\\ example: ch NameOfExistingContact')
-    print('"ff" - to find something in the phonebook \\ example: ff YourText')
     print('"exit", ".", "bye" - for exit')
     return 'make your choice'
 
