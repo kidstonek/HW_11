@@ -209,6 +209,7 @@ def check_contact_b_day(addressbook: AddressBook, *args):
 def helps(*args):
     print('You can use following commands:')
     print('"show", "s" - to show the whole PhoneBook')
+    print('"s and number" - to show the whole PhoneBook by pages \\ example: s [number]')
     print('"add" - to add the contact to the Phone book \\ example: add ContactName Phone \\+ Phone....')
     print('"ap" - add phone for existing contact \\ example: ap NameOfExistingContact Phone \\+ Phone....')
     print('"change", "ch" - to update existing phone number for contact \\ example: change '
@@ -217,6 +218,7 @@ def helps(*args):
           'Phone \\+ Phone....')
     print('"birthday", "bdate", "bd" - to check how many days till next birthday for the contact '
           '\\ example: ch NameOfExistingContact')
+    print('"ff" - to find something in the phonebook \\ example: ff YourText')
     print('"exit", ".", "bye" - for exit')
     return 'make your choice'
 
